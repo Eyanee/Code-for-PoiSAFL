@@ -6,7 +6,6 @@ import numpy as np
 import copy
 import math
 from model import MLP, CNNMnist, CNNFashion_Mnist, CNNCifar, VGGCifar
-from customLossFuncs import CustomDistance1
 
 
 
@@ -48,7 +47,6 @@ class LocalUpdate(object):
 
         return trainloader, testloader
 
-# 修改这一部分的梯度更新方式
     def update_weights(self, model, global_round):
         model.train()
         epoch_loss = []
@@ -73,14 +71,8 @@ class LocalUpdate(object):
                 images, labels = images.to(self.device), labels.to(self.device)
                 if self.data_poison ==True:
                     labels = (labels+1)%10
-                    # for idx,label in enumerate(labels):
-                    #     if label == 7:
-                    #         labels[idx] = 1
-                    #     elif label == 1:
-                    #         labels[idx] = 7
-                    
+
                 model.zero_grad()
-                 # 修改点1：设置模型参数需要梯度
                 for param in model.parameters():
                     param.requires_grad_(True)
                 log_probs, _ ,PLR= model(images)
@@ -93,16 +85,12 @@ class LocalUpdate(object):
                 batch_grad.append(grad)               
 
                 batch_loss.append(loss.item())
-            # print(batch_grad)
-            # grad_tensor = torch.tensor(np.array([item.cpu().detach().numpy() for item in batch_grad])).cuda()
-            # grad_mean = torch.mean(grad_tensor, dim=0)
             
             x = batch_grad[0]
             for i in range(1, len(batch_grad)):
                 x += batch_grad[i]
             x = x / len(batch_grad)
             epoch_grad.append(x)
-            # print(x)
             epoch_loss.append(sum(batch_loss) / len(batch_loss))
             
         xx = epoch_grad[0]
@@ -110,9 +98,6 @@ class LocalUpdate(object):
             xx += epoch_grad[i]
         xx = xx / len(epoch_grad)
         return_grad = xx
-        
-        # print(model.state_dict())
-        # print(xx)
         
         return model.state_dict(),  sum(epoch_loss) / len(epoch_loss) , return_grad
 
@@ -160,7 +145,7 @@ def test_inference(args, model, test_dataset):
             
             Information = F.softmax(out, dim=1) * F.log_softmax(out, dim=1)
             
-            entropy  = -1.0 * Information.sum(dim=1) # size [64]
+            entropy  = -1.0 * Information.sum(dim=1) 
             average_entropy = entropy.mean().item()
             
 

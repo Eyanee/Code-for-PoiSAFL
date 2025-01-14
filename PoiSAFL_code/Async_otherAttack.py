@@ -11,7 +11,7 @@ from tqdm import tqdm
 import torch
 
 from update import LocalUpdate, test_inference, DatasetSplit
-from poison_optimization_test import Outline_Poisoning, add_small_perturbation,cal_ref_distance,model_dist_norm,cal_similarity
+from poison_optimization_fmnist import Outline_Poisoning, add_small_perturbation,cal_ref_distance,model_dist_norm,cal_similarity
 from model import MLP, CNNMnist, CNNFashion_Mnist, CNNCifar, VGGCifar,GTSRBNet
 from resnet import *
 from utils1 import *
@@ -26,9 +26,6 @@ import  gc
 gc.collect()
 torch.cuda.empty_cache()
 
-
-# For experiments with only stragglers
-# For experiments with both stragglers and adversaries
 
 
 if __name__ == '__main__':
@@ -46,8 +43,6 @@ if __name__ == '__main__':
 
     gpu_number = args.gpu_number
     device = torch.device(f'cuda:{gpu_number}' if args.gpu else 'cpu')
-
-    # writer = LogWriter(logdir="./log/histogram_test/async_res_noattack_3")
 
     train_dataset, test_dataset, (user_groups, dict_common) = get_dataset(args) 
 
@@ -79,14 +74,7 @@ if __name__ == '__main__':
 
     global_model.to(device)
 
-    # params = torch.load('./global_model_parameters.pth')  
-    # params = torch.load('./fmnist_Trimean_100_noniid_model_parameters_new_0.1.pth')
-    # params = torch.load('./cifar_iid_200_model_parameters.pth')   
-    
 
-
-    # global_model.load_state_dict(params)
-    
     global_model.train()
     
     fi_global_model = copy.deepcopy(global_model)
@@ -156,7 +144,6 @@ if __name__ == '__main__':
         
         clientStaleness[l] = count%6+1
         
-    # 恶意用户的历史存储
     MAX_STALENESS = args.staleness
     mal_parameters_list = {}
     mal_grad_list = {}
@@ -211,7 +198,7 @@ if __name__ == '__main__':
                 pre_grad[i] = copy.deepcopy(pre_grad[i + 1])
                 pre_loss[i] = copy.deepcopy(pre_loss[i + 1])
 
-        pre_weights[args.staleness] = [] # 对staleness的权重
+        pre_weights[args.staleness] = []
         pre_indexes[args.staleness] = []
         pre_grad[args.staleness] = []
         pre_loss[args.staleness] = []
@@ -308,7 +295,6 @@ if __name__ == '__main__':
                     local_index_delay[0].append(idx)
                     loss_on_public[0].append(mal_loss_sync)
                     entropy_on_public[0].append(mal_entropy_sample)
-                    #
                     local_grad_delay[0].append(copy.deepcopy(mal_vec))
                     test_model.load_state_dict(global_weights)
 
@@ -319,7 +305,6 @@ if __name__ == '__main__':
                 if args.poison_methods == 'LIE':
                     test_model.load_state_dict(global_weights)
                     optimizer_fed = Adam(test_model.parameters(), lr=0.01)
-                    print("len of [0] is ", len(mal_parameters_list[0]))
                     malicious_dict = LIE_attack(mal_grad_list[0])
                     optimizer_fed.step(malicious_dict)
             
@@ -349,8 +334,7 @@ if __name__ == '__main__':
                                                                                                 DatasetSplit(train_dataset,
                                                                                                     dict_common))
                     malicious_dict = copy.deepcopy(test_model.state_dict())
-                    
-                    # print("mal_idx is", mal_acc)
+    
                     local_weights_delay[ 0].append(malicious_dict)
                     local_index_delay[0].append(idx)
                     loss_on_public[0].append(mal_loss_sync)
@@ -447,11 +431,9 @@ if __name__ == '__main__':
             
             for k in local_delay_ew:
                 current_param.extend(k)
-            # print("len current param", len(current_param))
             global_weights = AFLGuard(current_param, global_model, global_test_model, epoch, std_keys, args.lr, lamda = 1.8 )
         
         elif args.update_rule == 'Zenoplusplus':
-            # current_grad = copy.deepcopy(local_grad_delay[0])
             current_param = copy.deepcopy(local_weights_delay[0])
             current_index = copy.deepcopy(local_index_delay[0])
             global_test_model = LocalUpdate(args=args, dataset=train_dataset, idxs=dict_common, idx=idx,
@@ -530,7 +512,6 @@ if __name__ == '__main__':
         final_test_acc.append(test_acc)
         print('Test Accuracy: {:.2f}% \n'.format(100 * test_acc))
 
-        # Schedular Update
         for l in all_users:
             if(scheduler[l] > 0):
                 scheduler[l] = (scheduler[l] - 1)   

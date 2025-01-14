@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import math
 from model import MLP, CNNMnist, CNNFashion_Mnist, CNNCifar, VGGCifar
-from customLossFuncs import CustomDistance1
+# from customLossFuncs import CustomDistance1
 
 
 
@@ -106,8 +106,6 @@ class LocalUpdate(object):
         xx = xx / len(epoch_grad)
         return_grad = xx
         
-        # print(model.state_dict())
-        print("train loss is ",sum(epoch_loss) / len(epoch_loss) )
         
         return model.state_dict(),  sum(epoch_loss) / len(epoch_loss) , return_grad
 

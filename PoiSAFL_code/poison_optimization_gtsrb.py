@@ -134,7 +134,6 @@ def phased_optimization(args, global_model, w_rand, train_dataset, distance_thre
  
         else:
             test_distance_2 = model_dist_norm( global_model.state_dict(),student_model.state_dict())
-            print("test distance 2 is ", test_distance_2)
             distillation_res, w_rand = self_distillation(args,  teacher_model, student_model, train_dataset, entropy_threshold, global_model, pinned_accuracy_threshold, distance_threshold, distillation_round = 5)
             
         student_model.load_state_dict(w_rand)
@@ -182,7 +181,6 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
     lr = args.lr
     device = f'cuda:{args.gpu_number}' if args.gpu else 'cpu'
     trainloader = DataLoader(train_dataset, batch_size=128, shuffle=False)
-    # optimizer = torch.optim.Adam(student_model.parameters(), lr=lr, weight_decay=1e-4)
     optimizer = MyPOptimizer(student_model.parameters(),lr=lr)
     criterion1 = nn.NLLLoss().to(device)
     
@@ -192,7 +190,7 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
     student_model.to(device)
     
     num_epochs = distillation_round
-    temperature = 50 ### 增大
+    temperature = 50
     alpha = 0.88
     beta = 0.12
     previous_loss = 0
@@ -212,7 +210,6 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
 
         # loss =1
         if epoch != 0:
-            # 防止循环太多次
             if abs(loss - previous_loss) < 0.005:
                 print("exit early")
                 return False, student_model.state_dict()
@@ -220,7 +217,7 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
 
 
         if avg_entropy <= entropy_threshold and acc_1<= accuracy_threshold and loss <= 3:
-        # if loss <=2 and avg_entropy <= entropy_threshold :
+
             return True, student_model.state_dict()
         elif avg_entropy <= entropy_threshold and loss > 3:
             print("change alpha")
@@ -334,8 +331,6 @@ def dict2gradient(model_dict, std_keys):
         if idx == 0:
             grads = model_dict[key].view(-1)
         grads = torch.cat((grads, model_dict[key].view(-1)), dim = 0)
-
-    print("grads shape is ", grads.shape)
 
     return grads
 

@@ -19,7 +19,6 @@ def mnist_iid(dataset, number_user):
 
 
 def gtsrb_iid(dataset,num_users):
-    print("len(dataset)",len(dataset))
     num_shards, num_imgs = 200, len(dataset)//200
     dict_common = np.array([] ,dtype=np.int64)
 
@@ -50,7 +49,6 @@ def gtsrb_iid(dataset,num_users):
     all_idxs = list(set(idxs) - set(dict_common))
 
     num_items = int(len(all_idxs)/(num_users))
-    print("num_items is ", num_items)
 
     dict_users = {}
     for i in range((num_users)):
@@ -188,14 +186,9 @@ def cifar_iid(dataset, num_users):
     for rand in idx_set:
         dict_common = np.concatenate((dict_common, idxs_ordered[rand*num_shards:rand*num_shards+50]), axis=0)
 
-    # for idx, item in enumerate(dict_common):  
-    #     if idx <= 10:
-    #         print(f"Item: {item}, Type: {type(item)}") 
-    
     all_idxs = list(set(idxs) - set(dict_common))
 
     num_items = int(len(all_idxs)/(num_users))
-    print("num_items is ", num_items)
 
     dict_users = {}
     for i in range((num_users)):

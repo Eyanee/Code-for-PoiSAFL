@@ -130,9 +130,7 @@ def gtsrb_noniidcmm(dataset, num_users, num_commondata,alpha):
     for rand in idx_set:
         dict_users[0] = np.concatenate((dict_users[0], idxs[rand*num_imgs:rand*num_imgs+10]), axis=0)
 
-    print("len dict[user]",len(dict_users[0]))
-    print("type dict users[0]", type(dict_users[0]))
-    print("type dict idxs", type(idxs))
+    
     idxs = list(set(idxs) - set(dict_users[0]))
     b = []
     for i in idxs:
@@ -143,7 +141,6 @@ def gtsrb_noniidcmm(dataset, num_users, num_commondata,alpha):
 
     train_labels = labels
     alpha = 1.0
-    print("dataset ")
     dict_users = dirichlet_split_noniid(43,train_labels, alpha, num_users)
 
 

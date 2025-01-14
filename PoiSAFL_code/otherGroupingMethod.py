@@ -129,11 +129,8 @@ def compute_AFA_mean(params):
 def compute_similarity(params, avg_params):
     all_similariy = []
     for key in params:
-        # print("shape params[key]",params[key].shape)
-        # print("shape avg_params[key]",avg_params[key].shape)
         tmp_similarity = nn.functional.cosine_similarity(params[key].view(-1), avg_params[key].view(-1),dim=0)
-        # print("tmp similarity1 is", tmp_similarity)
-        # print("tmp similarity2 is", tmp_similarity.unsqueeze(0))
+
         all_similariy.append(tmp_similarity)
     return sum(all_similariy)
 
@@ -360,24 +357,17 @@ def Zenoplusplus(args, global_state_dict, param_updates,global_update_param, std
         param_update_gd = compute_gradient(param_update,global_state_dict,std_keys,args.lr)
         user_param_square = torch.norm(param_update_gd)
         
-        print("user_param_square norm is   ",user_param_square)
-        # c = torch.sqrt(global_param_square / user_param_square)
         c = (global_param_square / user_param_square).double()
-        print("c is ", c)
         user_param_square= user_param_square* c
         user_param =  param_update_gd *  c
         
         # compute score
         zeno_innerprod = 0
         zeno_square = global_param_square
-        print("user_param_square", user_param_square)
-        print("global_param_square", global_param_square)
         zeno_innerprod = torch.dot(user_param.double(), global_update.double())
-        print("part1 is ",zeno_innerprod)
         score = args.lr * (zeno_innerprod) - zeno_rho * (zeno_square) + args.lr * zeno_epsilon
         print("score :", score)
         if score >= 0:
-            print("accept")
             modified_updates = restoregradients(global_state_dict, std_keys,  param_update_gd)
             # param_updates[index]
             accept_list.append(modified_updates)
@@ -386,7 +376,6 @@ def Zenoplusplus(args, global_state_dict, param_updates,global_update_param, std
 
 
 def compute_mmd(x, y, sigma=1.0):
-    # 计算高斯核矩阵
     xx = torch.matmul(x, x.t())
     yy = torch.matmul(y, y.t())
     xy = torch.matmul(x, y.t())
@@ -412,7 +401,7 @@ def FLARE(args, global_model, param_updates, common_dataset):
     user_len = len(param_updates)
     test_model.eval()
 
-    trainloader = DataLoader(common_dataset, batch_size=64, shuffle=False) #待修改
+    trainloader = DataLoader(common_dataset, batch_size=64, shuffle=False) 
     user_PLR = []
 
     for param in param_updates:
@@ -508,7 +497,6 @@ def get_param_flatterned(std_keys, param):
     param_update = []
     for k in std_keys:
         param_update = param[k].view(-1) if len(param_update) == 0 else torch.cat((param_update, param[k].view(-1)), 0)
-    # print("shape param_update", param_update.shape)
     return param_update
 
 def AFLGuard(param_updates, global_model, global_test_model, epoch, std_keys, lr, lamda):
@@ -556,7 +544,7 @@ def norm_clipping(global_model, local_weights_delay ,local_delay_ew,std_keys,lr)
         params_mod.append(compute_gradient(item, global_model.state_dict(),std_keys,lr ))
     
 
-    number_to_consider = int(len(params_mod)* 0.8) ### 尝试0.5
+    number_to_consider = int(len(params_mod)* 0.8) 
     weight_updates = torch.stack(params_mod,dim= 0)
     norm_res = torch.norm(weight_updates, p =2 ,dim = 1)
     sorted_norm, sorted_idx = torch.sort(norm_res)
@@ -568,14 +556,13 @@ def norm_clipping(global_model, local_weights_delay ,local_delay_ew,std_keys,lr)
 
 
 def LFR(args, global_model, param_updates, indexes, common_dataset):
-   
+
+    loss_list = []
     test_model = copy.deepcopy(global_model)
     w_avg = average_weights(param_updates)
     w_origin = update_global(args, copy.deepcopy(global_model.state_dict()),w_avg)
-
     test_model.load_state_dict(copy.deepcopy(w_origin))
     acc_origin, loss_origin, _ = test_inference_clone(args, test_model, common_dataset)
-    print("loss origin is", loss_origin)
     for idx in range(len(param_updates)):
         
         temp_list = param_updates[:idx] + param_updates[idx+1:]  
@@ -584,19 +571,15 @@ def LFR(args, global_model, param_updates, indexes, common_dataset):
         test_model.load_state_dict(copy.deepcopy(w_temp))
         acc_temp, loss_temp, _ = test_inference_clone(args, test_model, common_dataset)
         loss_diff = abs(loss_temp - loss_origin)
-        print("index is {}  loss diff is {}".format(indexes[idx], loss_diff))
         loss_list.append(loss_diff)
     
     loss_sorted = sorted(loss_list, reverse=True)
-    print("loss _list is ",loss_sorted)
     threshold_idx = math.floor(len(loss_list) *0.2)
     threshold_value = loss_sorted[threshold_idx]
-    print("threshold_value is ",threshold_value)
-    
-    new_list = get_list(loss_list,threshold_value,threshold_idx)
-    # new_list = [0 if x >= threshold_value else 1 if x < threshold_value else x for x in loss_list]  
-    print("list is ",new_list)
 
+    
+    new_list = get_list(loss_list,threshold_value,threshold_idx)  
+    print("list is ",new_list)
     total_sum = sum(new_list)  
     new_list = [x / total_sum for x in new_list]  
     print("weight is ",new_list)
@@ -611,6 +594,7 @@ def LFR(args, global_model, param_updates, indexes, common_dataset):
   
     
     return update_global(args, global_model.state_dict(), w_avg)
+
 
 def Krum(params,std_keys, benign_user_number):  # 
     update_dict = copy.deepcopy(params[0])

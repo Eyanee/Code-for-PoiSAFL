@@ -11,9 +11,6 @@ def get_key_list(std_keys):
     return res
 
 def modifyWeight(std_keys, local_weights):  
-    """
-    local_weights : state_dict 字典值
-    """
     param_updates = list()
     param_update = list()
     for update_item in local_weights:
@@ -21,7 +18,7 @@ def modifyWeight(std_keys, local_weights):
         for key in std_keys:
             param_new.append(copy.deepcopy(update_item[key]))
 
-        param_update = [] # 清空
+        param_update = [] 
         for j in range(len(param_new)):
             sub_res = torch.sub(param_new[j], 0).reshape(-1)
             param_update = sub_res if len(param_update) == 0 else torch.cat((param_update, sub_res), 0)
@@ -48,7 +45,6 @@ def restoreWeight(std_dict, std_keys, update_weights):
 
 def LIE_attack(benign_users):
     if len(benign_users) == 0:
-        print("zero")
         return
     std_dict = copy.deepcopy(benign_users[0])
 
@@ -57,34 +53,22 @@ def LIE_attack(benign_users):
     params_mean = torch.mean(users_grads, axis=0) 
     params_stdev = torch.var(users_grads, axis=0) ** 0.5 
 
-
-    print("params_mean", params_mean.shape)
-    print("params_stdev", params_stdev.shape)
     
     mal_param = params_mean + 0.74 * params_stdev
-    print("mal_param", mal_param.shape)
 
 
     return mal_param
 
 
-# min-max:
-"""
-input:
 
 
-output:
-"""
 def min_max(args, all_updates, dev_type='std'):
     gpu_number = args.gpu_number
     device = torch.device(f'cuda:{gpu_number}' if args.gpu else 'cpu')
 
     std_keys = all_updates[0].keys()
     std_dict = copy.deepcopy(all_updates[0])
-    print("len all_updates is ", len(all_updates))
-    # 传参有问题
     param_updates = modifyWeight(std_keys, all_updates)
-    print("param_updates type  is ", param_updates.shape)
 
     model_re = torch.mean(param_updates, axis=0) 
 
@@ -101,11 +85,9 @@ def min_max(args, all_updates, dev_type='std'):
     lamda = torch.Tensor([10.0]).to(device)
     lamda_fail = lamda
     threshold_diff = 1e-3
-    # base_grad = param_updates[0]
     for grad_i in param_updates:
         for grad_j in param_updates:
             distance = torch.norm(grad_i - grad_j)**2
-        # print("distance is ",distance)
         max_distance = max(max_distance, distance)
 
     
@@ -192,7 +174,7 @@ def Grad_median(args, param_updates, n_attackers, std_keys, dev_type='unit_vec',
 
 
     if dev_type == 'unit_vec':
-        deviation = model_re / torch.norm(model_re)  # unit vector, dir opp to good dir
+        deviation = model_re / torch.norm(model_re) 
     elif dev_type == 'sign':
         deviation = torch.sign(model_re)
     elif dev_type == 'std':
@@ -234,7 +216,6 @@ def compute_gradient(model_1, model_2, std_keys,  lr):
         param2 = model_2[key]
         tmp = (param1 - param2)
         grad = tmp.view(-1) if len(grad)== 0 else torch.cat((grad,tmp.view(-1)),0)
-    print("grad,shape is",grad.shape)
     return grad
 
 def restoregradients(std_dict, std_keys, update_weights):

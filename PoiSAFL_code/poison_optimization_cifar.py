@@ -13,7 +13,6 @@ initial_w_rand = None
 
 def cal_similarity(ori_params, mod_params):
     std_keys = get_key_list(ori_params.keys())
-    # cos_similarity = 0.0 
     params1 = torch.cat([ori_params[k].view(-1) for k in std_keys])
     params2 = torch.cat([mod_params[k].view(-1) for k in std_keys])
 
@@ -208,7 +207,6 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
         # loss =1
         if epoch != 0:
             if abs(loss - previous_loss) < 0.005:
-                print("exit early")
                 return False, student_model.state_dict()
         previous_loss =  loss
 
@@ -219,7 +217,6 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
             alpha = 0.2
             beta = 0.8
         else:
-            print("distillation for acc")
             alpha = 0.9 
             beta = 0.1
 
@@ -242,7 +239,7 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
             stu_out, student_outputs,PLR = student_model(images)
             _ , teacher_outputs, PLR= teacher_model(images)
             l_loss = criterion1(stu_out, pred_is)
-            t_loss = criterion1(stu_out,  labels) #  增加了正常的loss
+            t_loss = criterion1(stu_out,  labels)
             loss =  alpha * l_loss + beta * t_loss
 
             

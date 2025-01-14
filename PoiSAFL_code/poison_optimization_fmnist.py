@@ -169,14 +169,11 @@ def adaptive_scaling(w_rand, ref_model_dict, distance_threshold, test_distance):
         cal_distance = test_distance
         while cal_distance > distance_threshold:
             ratio = math.sqrt((distance_threshold / cal_distance)) * 0.98 # 
-            print("cal ratio is ",ratio)
             keys = reversed(get_key_list(ref_model_dict))
             for key in keys:
                 w_rand[key] = torch.sub(w_rand[key], ref_model_dict[key]) * ratio + ref_model_dict[key]
             cal_distance = model_dist_norm(w_rand, ref_model_dict)
-            print("cal_distance is ", cal_distance)
         return_distance = model_dist_norm(w_rand, ref_model_dict)
-        print("return_distance is ", return_distance)
         return w_rand
     
     return w_rand
