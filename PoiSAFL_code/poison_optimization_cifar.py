@@ -285,7 +285,6 @@ def add_small_perturbation(original_model, args, pinned_accuracy, train_dataset,
             optimizer.step()
 
         accuracy  = correct/total
-        print("batch acc is",   accuracy )
 
     return test_model.state_dict()
 
@@ -326,8 +325,6 @@ def cal_Norm(model_dict):
 
 def computeTargetDistance(model_dicts, global_model, ratio):
     res_distance = []
-
-    print("len of model dicts is ", len(model_dicts))
 
     for model_dict in model_dicts:
         tmp_distance = model_dist_norm(model_dict, global_model.state_dict())

@@ -46,7 +46,6 @@ def  model_dist_norm(ori_params, mod_params):
             temp1 = torch.sum(pdlist(t1 ,t2))
             output = torch.sum(temp1)
             distance1 += output
-    print("distance x is",distance1)
     return distance1
 
 
@@ -74,11 +73,6 @@ def Outline_Poisoning(args, global_model, malicious_models, train_dataset, dista
 
     w_poison, optimization_res = phased_optimization(args, global_model, w_rand, train_dataset, distance_threshold,  0.8)
 
-    if not optimization_res:
-
-        print("optimization failed")
-    else:
-        return w_poison
     return w_poison 
 
 def cal_Norm(model_dict):
@@ -156,7 +150,7 @@ def phased_optimization(args, global_model, w_rand, train_dataset, distance_thre
         distillation_res, w_rand = self_distillation(args,  teacher_model, student_model, train_dataset, entropy_threshold, global_model, pinned_accuracy_threshold, distance_threshold, distillation_round = 1)
 
 
-    print("reach max round")
+    # print("reach max round")
     return w_rand, False
 
 
@@ -228,7 +222,6 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
         if avg_entropy <= entropy_threshold and acc_1<= accuracy_threshold and loss <= 2:
             return True, student_model.state_dict()
         elif avg_entropy <= entropy_threshold and loss > 2:
-            print("change alpha")
             alpha = 0.7
             beta = 0.3
         else:
@@ -297,7 +290,6 @@ def add_small_perturbation(original_model, args, pinned_accuracy, train_dataset,
             optimizer.step()
 
         accuracy  = correct/total
-        print("batch acc is",   accuracy )
 
     return test_model.state_dict()
 
@@ -342,15 +334,12 @@ def computeTargetDistance(model_dicts, global_model, ratio):
 
     res_distance = []
 
-    print("len of model dicts is ", len(model_dicts))
 
     for model_dict in model_dicts:
         tmp_distance = model_dist_norm(model_dict, global_model.state_dict())
         tmp_similarity = cal_similarity(model_dict, global_model.state_dict())
         tmp_norm =cal_Norm(model_dict)
         res_distance.append(tmp_distance)
-        print("compute distance is ", tmp_distance)
-        print("compute norm is ", tmp_norm)
     res_distance.sort()
 
     max_idx = int(len(model_dicts))-1

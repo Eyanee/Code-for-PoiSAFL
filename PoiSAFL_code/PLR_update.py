@@ -81,7 +81,6 @@ class LocalUpdate(object):
                 optimizer.step()
                 
                 grad = torch.cat([p.grad.view(-1) for p in model.parameters()])
-                # print(grad)
                 batch_grad.append(grad)               
 
                 batch_loss.append(loss.item())

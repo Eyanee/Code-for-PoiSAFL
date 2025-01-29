@@ -157,8 +157,7 @@ def get_dataset(args):
                                                   transform=data_transforms)
         test_dataset = datasets.GTSRB(data_dir, split = 'test', download=True,
                                                   transform=data_transforms)
-        print("len testdataset", len(test_dataset))
-        print("len traindataset", len(train_dataset))
+
         if args.iid == 1:
 
             user_groups = gtsrb_iid(train_dataset, args.num_users)
@@ -168,7 +167,6 @@ def get_dataset(args):
             user_groups = gtsrb_noniidcmm(train_dataset, args.num_users, args.num_commondata, args.alpha)
 
     elif args.dataset == 'mnist' or 'fmnist':
-        print("*******mnist")
         apply_transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
@@ -248,8 +246,6 @@ def Sag(current_epoch, current_average, current_length, epoch_weights, global_we
     alpha_for_attack = np.ones(args.staleness+1)
 
     comm = current_length
-    print("curent length is ",current_length)
-    print("the length of epoch_weights is ", len(epoch_weights))
     for i in epoch_weights:
         key = list(i.keys())[0]
         alpha.append(key)
@@ -273,10 +269,8 @@ def Sag(current_epoch, current_average, current_length, epoch_weights, global_we
     if len(weights_d) > 0 and current_epoch >=args.staleness:
         if current_average is None:
             alpha_for_attack[0] = 0
-        print("the length of weights_d is ", len(weights_d))
-
+   
     #Staleness-based weight *#*****
-    print("alpha 1 is",alpha)
     alphas = 1.0  /  ((current_epoch - np.array(alpha) + 1) )
 
 
@@ -285,11 +279,8 @@ def Sag(current_epoch, current_average, current_length, epoch_weights, global_we
     else:
         alphas = np.concatenate((np.array([1]), alphas), axis=0)
 
-    print("alphas 3 is",alphas)
-
     sum_alphas = sum(alphas)
     alphas = alphas / sum_alphas
-    print("alphas is ",alphas)
 
     for key in w_semi.keys():
         for i in range(0, len(weights_d) + 1):
@@ -319,9 +310,7 @@ def Sag(current_epoch, current_average, current_length, epoch_weights, global_we
 
 
 def Fedavg(args, current_epoch, all_weights, global_model):
-    
-    print("len all weights is", len(all_weights))
-    # print("all_weights",all_weights)
+
     avg_weights = average_weights(all_weights)
 
     w_semi = copy.deepcopy(global_model.state_dict())
@@ -371,16 +360,12 @@ def Eflow(w, loss, entropy, current_epoch, num_device=[]):
     alpha = []
 
     for j in range(0, len(loss)):
-        # print("j  ", j)
-        # print("entropy[j] " ,entropy[j] )
         if entropy[j] >= args.eth:
             norm_q = 0
             num_attack += 1
         else:
             norm_q = 1
-        # print("norm_q is  ",norm_q)
         if len(num_device) == 0:
-            # alpha.append(norm_q / loss[j] ** args.delta)
             alpha.append(norm_q)
 
 

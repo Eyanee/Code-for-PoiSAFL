@@ -55,7 +55,6 @@ def cifar_noniidcmm(dataset, num_users, num_commondata):
     num_shards, num_imgs = 200, 250
     idx_shard = [i for i in range(num_shards)]
     dict_users = {i:np.array([]) for i in range(num_users+1)}
-    print("type dict users[0]", type(dict_users[0]))
     idxs = np.arange(num_shards * num_imgs)
    
 
@@ -78,9 +77,6 @@ def cifar_noniidcmm(dataset, num_users, num_commondata):
     idx_set = set(range(11))
     for rand in idx_set:
         dict_users[0] = np.concatenate((dict_users[0], idxs[rand*num_imgs:rand*num_imgs+50]), axis=0)
-    print("len dict[user]",len(dict_users[0]))
-    print("type dict users[0]", type(dict_users[0]))
-    print("type dict idxs", type(idxs))
     idxs = list(set(idxs) - set(dict_users[0]))
     dict_common = copy.deepcopy(dict_users[0])
     b = []
@@ -106,7 +102,6 @@ def gtsrb_noniidcmm(dataset, num_users, num_commondata,alpha):
 
     idx_shard = [i for i in range(num_shards)]
     dict_users = {i:np.array([]) for i in range(num_users+1)}
-    print("type dict users[0]", type(dict_users[0]))
     idxs = np.arange(num_shards * num_imgs)
    
 

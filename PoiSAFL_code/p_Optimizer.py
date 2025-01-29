@@ -86,7 +86,6 @@ class APFLOptimizer(Optimizer):
             loss = closure
 
         for group in self.param_groups:
-            # print(group)
             for p in group['params']:
                 if p.grad is None:
                     continue

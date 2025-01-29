@@ -124,10 +124,8 @@ if __name__ == '__main__':
     m = int(args.num_users * args.attack_ratio)
     n = args.num_users - m
     attack_users = all_users[-m:]
-    print("attack user num is ",m)
     
     t = int(math.ceil(n/args.staleness))
-    print(" t is ",t )
     
     for i in range(args.staleness):
         if i == args.staleness +1:
@@ -138,7 +136,7 @@ if __name__ == '__main__':
             end_idx = front_idx + t
         for j in range(front_idx, end_idx):
             clientStaleness[j] = i + 1 
-    print("attack_user is", attack_users)
+
 
     for count, l in enumerate(attack_users):
         
@@ -217,7 +215,7 @@ if __name__ == '__main__':
                                               data_poison=False)
 
                 scheduler[idx] = clientStaleness[idx]  
-                print("current submit client idx and staleness is ", idx ,scheduler[idx])
+                # print("current submit client idx and staleness is ", idx ,scheduler[idx])
 
                 
 
@@ -235,11 +233,11 @@ if __name__ == '__main__':
             
             ensure_1 += 1
             
-            if idx in attack_users and args.model_poison == True and epoch >=0:
+            if idx in attack_users and args.model_poison == True and epoch >=20:
                 mal_parameters_list[scheduler[idx] -1].append(w)
                 mal_grad_list[scheduler[idx] -1].append(gd)
             
-            elif  idx in attack_users and args.new_poison == True and epoch >=0:
+            elif  idx in attack_users and args.new_poison == True and epoch >=20:
                 mal_dict = sign_attack(w, args.model_poison_scale)
 
                 test_model = copy.deepcopy(global_model)
@@ -277,7 +275,7 @@ if __name__ == '__main__':
 
                 
             
-        if args.model_poison == True and epoch >=0 :
+        if args.model_poison == True and epoch >=20 :
             if args.poison_methods == 'LA':
                 mal_len = len(mal_grad_list[0])
                 malicious_dicts= LA_attack(args, mal_grad_list[0], mal_len,copy.deepcopy(global_model),std_keys)

@@ -31,7 +31,7 @@ def args_parser():
     parser.add_argument('--staleness', type=int, default=2,
                         help='maximum staleness)')
     parser.add_argument('--update_rule', type=str, default='Sageflow',
-                        help='choose Sageflow or Fedavg')
+                        help='choose update rule of server')
 
 
     # The amount of Public data1
@@ -78,7 +78,7 @@ def args_parser():
 
     # Data distribution setting
     parser.add_argument('--iid', type=int, default=1,
-                        help='Set to 1 for IID. Set to 0 for non-IID. Set to 2 for non-iid with public data')
+                        help='Set to 1 for IID. Set to 0 for non-IID')
 
     # Detailed settings
     parser.add_argument('--unequal', type=int, default=0,

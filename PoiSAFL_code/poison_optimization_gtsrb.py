@@ -126,10 +126,8 @@ def phased_optimization(args, global_model, w_rand, train_dataset, distance_thre
               
         elif (test_entropy > entropy_threshold or test_loss > 3) and distillation_res == True:
             if test_loss > 1:
-                print("0")
                 distillation_res, w_rand = self_distillation(args,teacher_model, student_model, train_dataset, entropy_threshold, global_model, pinned_accuracy_threshold, distance_threshold, distillation_round = 5)
             else:
-                print("1")
                 distillation_res, w_rand = self_distillation(args,teacher_model, student_model, train_dataset, entropy_threshold, global_model, pinned_accuracy_threshold, distance_threshold, distillation_round = 5)
  
         else:
@@ -211,7 +209,6 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
         # loss =1
         if epoch != 0:
             if abs(loss - previous_loss) < 0.005:
-                print("exit early")
                 return False, student_model.state_dict()
         previous_loss =  loss
 
@@ -220,19 +217,9 @@ def self_distillation(args, teacher_model, student_model, train_dataset, entropy
 
             return True, student_model.state_dict()
         elif avg_entropy <= entropy_threshold and loss > 3:
-            print("change alpha")
-            # alpha = 0.7
-            # beta = 0.3
             alpha = 0.75
             beta = 0.25
-        # # elif 
-        # elif acc_1<= accuracy_threshold:
-        #     print("restore alpha")
-
-        #     alpha = 4
-        #     beta = 1
         else:
-            print("distillation for acc")
 
             alpha = 0.5 
             beta = 0.5
@@ -304,7 +291,6 @@ def add_small_perturbation(original_model, args, pinned_accuracy, train_dataset,
             optimizer.step()
 
         accuracy  = correct/total
-        print("batch acc is",   accuracy )
 
     return test_model.state_dict()
 
@@ -351,15 +337,11 @@ def gradient2dict(weights, std_keys, std_dict):
 def computeTargetDistance(model_dicts, global_model, ratio):
     res_distance = []
 
-    print("len of model dicts is ", len(model_dicts))
-
     for model_dict in model_dicts:
         tmp_distance = model_dist_norm(model_dict, global_model.state_dict())
         tmp_similarity = cal_similarity(model_dict, global_model.state_dict())
         tmp_norm =cal_Norm(model_dict)
         res_distance.append(tmp_distance)
-        print("compute distance is ", tmp_distance)
-        print("compute norm is ", tmp_norm)
     res_distance.sort()
 
     max_idx = int(len(model_dicts))-1

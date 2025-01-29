@@ -226,8 +226,6 @@ def restoregradients(std_dict, std_keys, update_weights):
     for k in std_keys:
         tmp_len = len(list(std_dict[k].reshape(-1)))
         end_idx = front_idx + tmp_len
-        # print("update_weights shape", type(update_weights))
-        # print("front idx and end idx", front_idx, end_idx)
         tmp_tensor = update_weights[front_idx:end_idx].view(std_dict[k].shape)
         update_dict[k] = copy.deepcopy(tmp_tensor) +  update_dict[k]
         front_idx = end_idx
@@ -281,7 +279,6 @@ def LA_attack(args, param_updates, n_attackers,global_model,std_keys):
     mal_vec = (torch.stack([(deviation > 0).type(torch.FloatTensor)] * max_rand.shape[1]).T.to(device) * max_rand + torch.stack(
         [(deviation > 0).type(torch.FloatTensor)] * min_rand.shape[1]).T.to(device) * min_rand).T
 
-    print("mal_vec shape is ",mal_vec.shape)
 
 
     

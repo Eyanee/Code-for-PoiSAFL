@@ -97,7 +97,6 @@ def pre_Trimmed_mean(args, std_dict, std_keys, current_epoch_updates):
 
 def Median(para_updates): #
     agg_para_update = torch.median(para_updates, 0,keepdim=True)
-    # print("agg_para is ", agg_para_update[0].squeeze(0))
     return agg_para_update[0].squeeze(0)
 
 def pre_Median(std_dict, std_keys, current_epoch_updates):
@@ -122,7 +121,6 @@ def compute_AFA_mean(params):
         all_params_n = all_params_n.to(torch.float32)  
         avg_params[key] = torch.mean(all_params_n, dim = 0)
         all_params = []
-        # print("len all_params is ",all_params)
     return avg_params
 
 
@@ -142,7 +140,6 @@ def preGroupingIndex(local_index_delay, local_index_ew):
     index = local_index_delay
     for idx in local_index_ew:
         index.extend(idx)
-    print(index)
     return index
 
 """
@@ -165,7 +162,6 @@ def compute_gradient(model_1, model_2, std_keys,  lr):
         param2 = model_2[key]
         tmp = (param1 - param2)
         grad = tmp.view(-1) if len(grad)== 0 else torch.cat((grad,tmp.view(-1)),0)
-    print("grad,shape is",grad.shape)
     return grad
     
 
@@ -242,8 +238,6 @@ def Zeno(weights,  args, model, cmm_dataset, current_epoch):
         test_acc,test_loss, _  = test_inference_clone(args, model, cmm_dataset)
         loss_list.append(test_loss)
         
-    print("loss_list is", loss_list)
-    print("common_loss is", common_loss)
     
     fai = 0.01
     w = model.state_dict()
@@ -251,9 +245,7 @@ def Zeno(weights,  args, model, cmm_dataset, current_epoch):
 
     for i in range(0, len(weights)):
         length = compute_L2_norm(weights[i])
-        print("length is", length)
         tmp = common_loss - loss_list[i] - fai * length
-        print("score is ",tmp)
         score.append(tmp.__float__())
     min_value = min(score)
     score = np.array(score) - min_value
@@ -325,7 +317,6 @@ def update_weights_zeno(args, model, global_round,test_dataset):
             optimizer.step()
             
             grad = torch.cat([p.grad.view(-1) for p in model.parameters()])
-            # print(grad)
             batch_grad.append(grad)               
 
             batch_loss.append(loss.item())
@@ -344,7 +335,6 @@ def scale_updates(param_updates,c):
 
 """
 def Zenoplusplus(args, global_state_dict, param_updates,global_update_param, std_keys, indexes):
-    print("index is ", indexes)
     zeno_rho = 0.001 #
     zeno_epsilon = 0.02 # 0.02
 
@@ -352,7 +342,6 @@ def Zenoplusplus(args, global_state_dict, param_updates,global_update_param, std
 
     global_update = compute_gradient(global_update_param,global_state_dict,std_keys,args.lr)
     global_param_square =  torch.norm(global_update)
-    print("global_param_square norm is   ",global_param_square)
     for idx, param_update in enumerate(param_updates):
         param_update_gd = compute_gradient(param_update,global_state_dict,std_keys,args.lr)
         user_param_square = torch.norm(param_update_gd)
@@ -366,7 +355,6 @@ def Zenoplusplus(args, global_state_dict, param_updates,global_update_param, std
         zeno_square = global_param_square
         zeno_innerprod = torch.dot(user_param.double(), global_update.double())
         score = args.lr * (zeno_innerprod) - zeno_rho * (zeno_square) + args.lr * zeno_epsilon
-        print("score :", score)
         if score >= 0:
             modified_updates = restoregradients(global_state_dict, std_keys,  param_update_gd)
             # param_updates[index]
@@ -412,7 +400,6 @@ def FLARE(args, global_model, param_updates, common_dataset):
             output,out, PLR = test_model(images)
     
         user_PLR.append(PLR)
-    print("user_PLR len size", len(user_PLR))
 
     mmd_set = np.zeros((user_len, user_len))
     mmd_indicator = np.zeros((user_len, user_len))
@@ -437,11 +424,8 @@ def FLARE(args, global_model, param_updates, common_dataset):
                 count_indicator[jdx] = count_indicator[jdx] + 1 
 
     count_tensor = torch.Tensor(count_indicator)
-    print("counter_tensor is ",count_tensor)
     count_res = F.softmax(count_tensor, dim=-1)
     # print("count_res", count_indicator)
-    print("count_res", count_res)
-    # print("count_sum is ", torch.sum(count_res))
     for key in test_dict.keys():
         for i in range(0, len(count_res)):
             if i == 0:
@@ -515,19 +499,12 @@ def AFLGuard(param_updates, global_model, global_test_model, epoch, std_keys, lr
         param_i =compute_gradient(param,copy.deepcopy(global_model.state_dict()),std_keys,lr)
         
         norm_1 = torch.norm(torch.subtract(param_i, param_g))
-        # norm_1 = torch.norm(param_i,p =2)
-        print("norm_1 is ", norm_1)
-        print("norm_2 is ", norm_2)
-        print("norm_2 * lamda is",norm_2 * lamda )
-
         if norm_1 <= norm_2 * lamda:
-            print("satisfying", idx)
-            # global_weights = copy.deepcopy(global_model.state_dict())
             update_param = restoregradients(global_weights,std_keys,param_i)
             update_params.append(update_param)
             
-        else:
-            print("do  not satisfying", idx)
+        # else:
+        #     print("do  not satisfying", idx)
         
     update_res =average_weights(update_params)
     global_weights = update_weights(global_model.state_dict(),update_res)
@@ -579,10 +556,8 @@ def LFR(args, global_model, param_updates, indexes, common_dataset):
 
     
     new_list = get_list(loss_list,threshold_value,threshold_idx)  
-    print("list is ",new_list)
     total_sum = sum(new_list)  
     new_list = [x / total_sum for x in new_list]  
-    print("weight is ",new_list)
 
     for key in w_avg.keys():
         for idx, param in enumerate(param_updates):
